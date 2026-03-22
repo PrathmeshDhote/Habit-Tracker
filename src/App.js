@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Line, Doughnut } from 'react-chartjs-2';
-import { Check, Info, Activity, Heart, BookOpen, Target } from 'lucide-react';
+import { Check, Activity, Heart, BookOpen, Target } from 'lucide-react';
 import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement,
   Title, Tooltip, Legend, ArcElement, Filler
