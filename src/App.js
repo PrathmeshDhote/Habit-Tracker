@@ -4,10 +4,10 @@ import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signO
 import { getFirestore, doc, setDoc, onSnapshot } from "firebase/firestore";
 import { Line, Doughnut } from 'react-chartjs-2';
 import { 
-  LayoutDashboard, ListChecks, Settings, Flower2, Moon, 
-  Plus, Trash2, ChevronLeft, ChevronRight, Target, LogOut, 
-  TrendingUp, CalendarDays, Layers, BookOpen, Heart, Activity,
-  RefreshCw, Check, Calendar // Added icons for new features
+  LayoutDashboard, Settings, Flower2, Moon, 
+  Trash2, ChevronLeft, ChevronRight, LogOut, 
+  TrendingUp, Layers, BookOpen, Heart, Activity,
+  RefreshCw, Check, Calendar 
 } from 'lucide-react';
 import { format, getDaysInMonth, addMonths, subMonths } from 'date-fns';
 import { Chart as ChartJS, registerables } from 'chart.js';
@@ -34,15 +34,13 @@ const themes = {
     name: 'Midnight Pro', bg: '#080A0F', surface: '#11151F', border: '#1E2533', 
     text: '#F1F5F9', textMuted: '#64748B', accent: '#3B82F6',
     headerBg: '#1E2533', headerText: '#F1F5F9',
-    study: '#A855F7', self: '#F97316', health: '#10B981',
-    danger: '#EF4444' // Added for wipe button
+    study: '#A855F7', self: '#F97316', health: '#10B981', danger: '#EF4444'
   },
   sakura: {
     name: 'Sakura Bloom', bg: '#FFF5F7', surface: '#FFFFFF', border: '#FFE4E6', 
     text: '#471825', textMuted: '#A27E88', accent: '#F472B6',
     headerBg: '#BE185D', headerText: '#FFFFFF',
-    study: '#D946EF', self: '#FB923C', health: '#4ADE80',
-    danger: '#E11D48'
+    study: '#D946EF', self: '#FB923C', health: '#4ADE80', danger: '#E11D48'
   }
 };
 
@@ -52,17 +50,14 @@ export default function UltimateHabitTracker() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [currentDate, setCurrentDate] = useState(new Date());
   
-  // Tasks State
   const [tasks, setTasks] = useState({ daily: [], weekly: [], monthly: [], yearly: [] });
   const [checks, setChecks] = useState({});
   const [goals, setGoals] = useState({}); 
 
   const t = themes[theme];
   const monthKey = format(currentDate, 'yyyy-MM');
-  const yearKey = format(currentDate, 'yyyy');
   const daysInMonth = getDaysInMonth(currentDate);
 
-  // --- DATA SYNC ---
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
@@ -81,7 +76,6 @@ export default function UltimateHabitTracker() {
 
   const persist = (data) => user && setDoc(doc(db, "users", user.uid), data, { merge: true });
 
-  // --- ACTIONS ---
   const toggleCheck = (id, subKey) => {
     const key = `${id}-${subKey}`;
     const updated = { ...checks, [key]: !checks[key] };
@@ -90,7 +84,7 @@ export default function UltimateHabitTracker() {
   };
 
   const addTask = (type) => {
-    const name = prompt(`Enter ${type} task name (with emoji if you like):`);
+    const name = prompt(`Enter ${type} task name:`);
     const category = prompt("Category? (Study, Self, Health)");
     if (!name || !category) return;
     const newList = [...tasks[type], { id: Date.now(), name, category }];
@@ -113,9 +107,8 @@ export default function UltimateHabitTracker() {
     persist({ goals: updatedGoals });
   };
 
-  // --- NEW ACTIONS ---
   const wipeCheckboxes = async () => {
-    if (window.confirm("⚠️ Are you sure? This will wipe ALL checkmarks (habits and goals remain).")) {
+    if (window.confirm("⚠️ Are you sure? This will wipe ALL checkmarks.")) {
       setChecks({});
       persist({ checks: {} });
     }
@@ -123,7 +116,6 @@ export default function UltimateHabitTracker() {
 
   const goToToday = () => setCurrentDate(new Date());
 
-  // --- ANALYTICS LOGIC ---
   const analytics = useMemo(() => {
     const sidebarStats = { Study: { done: 0, potential: 0 }, Self: { done: 0, potential: 0 }, Health: { done: 0, potential: 0 } };
     const goalStats = { Study: { done: 0, goalSum: 0 }, Self: { done: 0, goalSum: 0 }, Health: { done: 0, goalSum: 0 } };
@@ -156,7 +148,6 @@ export default function UltimateHabitTracker() {
   return (
     <div style={{ backgroundColor: t.bg, color: t.text, minHeight: '100vh', display: 'flex', fontFamily: 'Outfit, sans-serif' }}>
       
-      {/* GLOBAL ANIMATION STYLES */}
       <style>{`
         @keyframes tickIn {
           0% { transform: scale(0); opacity: 0; }
@@ -164,9 +155,9 @@ export default function UltimateHabitTracker() {
           100% { transform: scale(1); opacity: 1; }
         }
         .tick-icon { animation: tickIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .premium-shadow { box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
       `}</style>
 
-      {/* SIDEBAR NAV */}
       <nav style={{ width: '85px', backgroundColor: t.surface, borderRight: `1px solid ${t.border}`, display: 'flex', flexDirection: 'column', alignItems: 'center', py: '40px', position: 'fixed', height: '100vh', zIndex: 100 }}>
          <div style={{ margin: '30px 0', color: t.accent }}><TrendingUp size={32} strokeWidth={3}/></div>
          <NavIcon active={activeTab==='dashboard'} onClick={()=>setActiveTab('dashboard')} icon={<LayoutDashboard/>} label="Daily" t={t} />
@@ -181,10 +172,8 @@ export default function UltimateHabitTracker() {
          </div>
       </nav>
 
-      {/* MAIN CONTENT */}
       <main style={{ marginLeft: '85px', flex: 1, padding: '40px' }}>
         
-        {/* TOP HEADER */}
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
             <div>
                 <h1 style={{ fontSize: '36px', fontWeight: '900', letterSpacing: '-1.5px', margin: 0 }}>
@@ -192,21 +181,13 @@ export default function UltimateHabitTracker() {
                 </h1>
                 <div style={{ display: 'flex', gap: '12px', marginTop: '12px', alignItems: 'center' }}>
                     <button onClick={()=>setCurrentDate(subMonths(currentDate, 1))} style={arrowBtn(t)}><ChevronLeft size={18}/></button>
-                    
-                    {/* TODAY BUTTON */}
-                    <button 
-                      onClick={goToToday} 
-                      style={{ ...arrowBtn(t), fontSize: '11px', fontWeight: '900', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}
-                    >
+                    <button onClick={goToToday} style={{ ...arrowBtn(t), fontSize: '11px', fontWeight: '900', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
                       <Calendar size={14}/> TODAY
                     </button>
-
                     <button onClick={()=>setCurrentDate(addMonths(currentDate, 1))} style={arrowBtn(t)}><ChevronRight size={18}/></button>
                 </div>
             </div>
             <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-                
-                {/* WIPE DATA BUTTON */}
                 <button 
                   onClick={wipeCheckboxes} 
                   style={{ 
@@ -218,15 +199,14 @@ export default function UltimateHabitTracker() {
                   <RefreshCw size={14}/> WIPE DATA
                 </button>
 
-                <BigGauge label="Efficiency" perc={Math.round((analytics.totalDone / (tasks.daily.length * 31 || 1)) * 100)} color={t.accent} t={t} />
+                <BigGauge label="Efficiency" perc={Math.round((analytics.totalDone / (tasks.daily.length * daysInMonth || 1)) * 100)} color={t.accent} t={t} />
                 <BigGauge label="Consistency" perc={78} color={t.health} t={t} />
             </div>
         </header>
 
-        {/* TAB 1: MAIN DASHBOARD (DAILY) */}
         {activeTab === 'dashboard' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: '30px' }}>
-            <div style={{ background: t.surface, borderRadius: '24px', border: `1px solid ${t.border}`, overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.1)' }}>
+            <div className="premium-shadow" style={{ background: t.surface, borderRadius: '24px', border: `1px solid ${t.border}`, overflow: 'hidden' }}>
                 <div style={{ overflowX: 'auto' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead style={{ background: t.headerBg, color: t.headerText }}>
@@ -251,16 +231,17 @@ export default function UltimateHabitTracker() {
                                     </td>
                                     {Array.from({length: daysInMonth}).map((_,i) => {
                                         const isChecked = checks[`${h.id}-${monthKey}-${i+1}`];
+                                        const habitColor = t[h.category.toLowerCase()] || t.accent;
                                         return (
                                         <td key={i} style={{ textAlign: 'center' }}>
                                             <div 
                                               onClick={() => toggleCheck(h.id, `${monthKey}-${i+1}`)} 
                                               style={{ 
                                                 width: '18px', height: '18px', borderRadius: '6px', margin: 'auto', cursor: 'pointer',
-                                                background: isChecked ? (t[h.category.toLowerCase()] || t.accent) : 'transparent', 
-                                                border: `2.5px solid ${isChecked ? (t[h.category.toLowerCase()] || t.accent) : t.border}`,
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                                boxShadow: isChecked ? `0 0 10px ${(t[h.category.toLowerCase()] || t.accent)}66` : 'none'
+                                                background: isChecked ? habitColor : 'transparent', 
+                                                border: `2.5px solid ${isChecked ? habitColor : t.border}`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s',
+                                                boxShadow: isChecked ? `0 0 10px ${habitColor}66` : 'none'
                                               }}
                                             >
                                               {isChecked && <Check size={12} color="white" strokeWidth={4} className="tick-icon" />}
@@ -296,13 +277,15 @@ export default function UltimateHabitTracker() {
                 <CategoryStat label="Health & Peace" icon={<Activity size={16} />} stats={analytics.sidebarStats.Health} color={t.health} t={t} />
             </aside>
 
+            {/* Bottom Section: Trend Graph (Shortened) + Gauge Charts */}
             <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: '30px' }}>
-                <div style={{ background: t.surface, padding: '30px', borderRadius: '24px', border: `1px solid ${t.border}` }}>
-                    <h3 style={{ marginBottom: '20px' }}>Daily Consistency Trend</h3>
-                    <div style={{ height: '220px' }}><Line data={lineData(analytics.dailyLine, t)} options={lineOptions(t)} /></div>
+                <div className="premium-shadow" style={{ background: t.surface, padding: '25px 30px', borderRadius: '24px', border: `1px solid ${t.border}` }}>
+                    <h3 style={{ marginBottom: '15px' }}>Daily Consistency Trend</h3>
+                    {/* Height shortened to 160px as requested */}
+                    <div style={{ height: '160px' }}><Line data={lineData(analytics.dailyLine, t)} options={lineOptions(t)} /></div>
                 </div>
 
-                <div style={{ background: t.surface, padding: '30px', borderRadius: '24px', border: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
+                <div className="premium-shadow" style={{ background: t.surface, padding: '30px', borderRadius: '24px', border: `1px solid ${t.border}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
                     <GoalDoughnut label="Study" stats={analytics.goalStats.Study} color={t.study} t={t} />
                     <GoalDoughnut label="Self" stats={analytics.goalStats.Self} color={t.self} t={t} />
                     <GoalDoughnut label="Health" stats={analytics.goalStats.Health} color={t.health} t={t} />
@@ -311,7 +294,6 @@ export default function UltimateHabitTracker() {
           </div>
         )}
 
-        {/* TAB 2: TIMELINE TRACKER */}
         {activeTab === 'tracker' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
             <TimelineSection title="Weekly Tasks" data={tasks.weekly} subKey={`${monthKey}-week`} count={5} t={t} toggle={toggleCheck} checks={checks} />
@@ -320,7 +302,6 @@ export default function UltimateHabitTracker() {
           </div>
         )}
 
-        {/* TAB 3: PLANNER */}
         {activeTab === 'planner' && (
            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '25px' }}>
               <ManageCard type="daily" data={tasks.daily} add={addTask} del={deleteTask} t={t} />
@@ -334,8 +315,6 @@ export default function UltimateHabitTracker() {
   );
 }
 
-// --- SUB COMPONENTS ---
-
 const NavIcon = ({ active, onClick, icon, label, t }) => (
   <div onClick={onClick} style={{ width: '50px', textAlign: 'center', cursor: 'pointer', marginBottom: '25px', transition: '0.3s' }}>
     <div style={{ width: '50px', height: '50px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: active ? t.accent : 'transparent', color: active ? '#fff' : t.textMuted, boxShadow: active ? `0 10px 20px ${t.accent}44` : 'none', marginBottom: '5px' }}>
@@ -346,7 +325,7 @@ const NavIcon = ({ active, onClick, icon, label, t }) => (
 );
 
 const BigGauge = ({ label, perc, color, t }) => (
-    <div style={{ background: t.surface, padding: '20px', borderRadius: '24px', border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '15px', minWidth: '180px' }}>
+    <div className="premium-shadow" style={{ background: t.surface, padding: '20px', borderRadius: '24px', border: `1px solid ${t.border}`, display: 'flex', alignItems: 'center', gap: '15px', minWidth: '180px' }}>
         <div style={{ width: '65px', height: '65px', position: 'relative' }}>
             <Doughnut data={{ datasets: [{ data: [perc, 100-perc], backgroundColor: [color, 'rgba(0,0,0,0.1)'], borderWidth: 0 }] }} options={{ cutout: '75%', plugins: { tooltip: { enabled: false } } }} />
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: '900' }}>{perc}%</div>
@@ -356,7 +335,7 @@ const BigGauge = ({ label, perc, color, t }) => (
 );
 
 const TimelineSection = ({ title, data, subKey, count, t, toggle, checks }) => (
-  <div style={{ background: t.surface, padding: '30px', borderRadius: '24px', border: `1px solid ${t.border}` }}>
+  <div className="premium-shadow" style={{ background: t.surface, padding: '30px', borderRadius: '24px', border: `1px solid ${t.border}` }}>
     <h3 style={{ marginBottom: '25px' }}>{title}</h3>
     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <thead style={{ background: t.headerBg, color: t.headerText }}>
@@ -393,7 +372,7 @@ const TimelineSection = ({ title, data, subKey, count, t, toggle, checks }) => (
 );
 
 const ManageCard = ({ type, data, add, del, t }) => (
-    <div style={{ background: t.surface, padding: '25px', borderRadius: '24px', border: `1px solid ${t.border}` }}>
+    <div className="premium-shadow" style={{ background: t.surface, padding: '25px', borderRadius: '24px', border: `1px solid ${t.border}` }}>
         <h4 style={{ textTransform: 'capitalize', marginBottom: '20px' }}>{type} Manager</h4>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {data.map(item => (
@@ -410,7 +389,7 @@ const ManageCard = ({ type, data, add, del, t }) => (
 const CategoryStat = ({ label, icon, stats, color, t }) => {
     const perc = stats.potential ? Math.round((stats.done / stats.potential) * 100) : 0;
     return (
-        <div style={{ background: t.surface, padding: '20px', borderRadius: '24px', border: `1px solid ${t.border}`, borderLeft: `6px solid ${color}` }}>
+        <div className="premium-shadow" style={{ background: t.surface, padding: '20px', borderRadius: '24px', border: `1px solid ${t.border}`, borderLeft: `6px solid ${color}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '11px', fontWeight: 'bold' }}>
                 <span style={{ color: t.textMuted, display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {icon} {label.toUpperCase()}
