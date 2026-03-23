@@ -46,7 +46,10 @@ const themes = {
 
 export default function UltimateHabitTracker() {
   const [user, setUser] = useState(null);
-  const [theme, setTheme] = useState('midnight');
+  
+  // LOGIC: Default to 'sakura', but remember user choice via localStorage
+  const [theme, setTheme] = useState(() => localStorage.getItem('user-theme') || 'sakura');
+  
   const [activeTab, setActiveTab] = useState('dashboard');
   const [currentDate, setCurrentDate] = useState(new Date());
   
@@ -57,6 +60,11 @@ export default function UltimateHabitTracker() {
   const t = themes[theme];
   const monthKey = format(currentDate, 'yyyy-MM');
   const daysInMonth = getDaysInMonth(currentDate);
+
+  // Persistence for Theme
+  useEffect(() => {
+    localStorage.setItem('user-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {
@@ -143,7 +151,16 @@ export default function UltimateHabitTracker() {
     return { dailyLine, sidebarStats, goalStats, totalDone: Object.values(checks).filter(v => v).length };
   }, [tasks, checks, goals, monthKey, daysInMonth]);
 
-  if (!user) return <LoginScreen t={themes.midnight} />;
+  const handleLogin = async () => {
+    try {
+        const provider = new GoogleAuthProvider();
+        await signInWithPopup(auth, provider);
+    } catch (error) {
+        alert("Login failed. Please check if your domain is authorized in Firebase Console. Error: " + error.message);
+    }
+  };
+
+  if (!user) return <LoginScreen t={themes.midnight} login={handleLogin} />;
 
   return (
     <div style={{ backgroundColor: t.bg, color: t.text, minHeight: '100vh', display: 'flex', fontFamily: 'Outfit, sans-serif' }}>
@@ -199,7 +216,7 @@ export default function UltimateHabitTracker() {
                   <RefreshCw size={14}/> WIPE DATA
                 </button>
 
-                <BigGauge label="Efficiency" perc={Math.round((analytics.totalDone / (tasks.daily.length * daysInMonth || 1)) * 100)} color={t.accent} t={t} />
+                <BigGauge label="Efficiency" perc={Math.round((analytics.totalDone / (tasks.daily.length * 31 || 1)) * 100)} color={t.accent} t={t} />
                 <BigGauge label="Consistency" perc={78} color={t.health} t={t} />
             </div>
         </header>
@@ -277,11 +294,9 @@ export default function UltimateHabitTracker() {
                 <CategoryStat label="Health & Peace" icon={<Activity size={16} />} stats={analytics.sidebarStats.Health} color={t.health} t={t} />
             </aside>
 
-            {/* Bottom Section: Trend Graph (Shortened) + Gauge Charts */}
             <div style={{ gridColumn: 'span 2', display: 'flex', flexDirection: 'column', gap: '30px' }}>
                 <div className="premium-shadow" style={{ background: t.surface, padding: '25px 30px', borderRadius: '24px', border: `1px solid ${t.border}` }}>
                     <h3 style={{ marginBottom: '15px' }}>Daily Consistency Trend</h3>
-                    {/* Height shortened to 160px as requested */}
                     <div style={{ height: '160px' }}><Line data={lineData(analytics.dailyLine, t)} options={lineOptions(t)} /></div>
                 </div>
 
@@ -315,6 +330,7 @@ export default function UltimateHabitTracker() {
   );
 }
 
+// Sub-components
 const NavIcon = ({ active, onClick, icon, label, t }) => (
   <div onClick={onClick} style={{ width: '50px', textAlign: 'center', cursor: 'pointer', marginBottom: '25px', transition: '0.3s' }}>
     <div style={{ width: '50px', height: '50px', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: active ? t.accent : 'transparent', color: active ? '#fff' : t.textMuted, boxShadow: active ? `0 10px 20px ${t.accent}44` : 'none', marginBottom: '5px' }}>
@@ -418,9 +434,9 @@ const GoalDoughnut = ({ label, stats, color, t }) => {
     );
 };
 
-const LoginScreen = ({ t }) => (
+const LoginScreen = ({ t, login }) => (
     <div style={{ background: t.bg, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <button onClick={() => signInWithPopup(auth, new GoogleAuthProvider())} style={{ padding: '15px 35px', background: t.accent, color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer' }}>LOGIN TO DASHBOARD</button>
+        <button onClick={login} style={{ padding: '15px 35px', background: t.accent, color: '#fff', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer' }}>LOGIN TO DASHBOARD</button>
     </div>
 );
 
